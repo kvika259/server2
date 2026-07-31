@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": "2762ad3b-345a-4a42-aa63-190f4ff27186",
+      "email": "user@example.com",
+      "passwordHash": "$2b$10$A45IsMoCQOI7qiT1sa/yuOdv8JE5BCb5HQ1BQmhr3080ubc.AGhOi"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Купить молоко",
+      "done": false,
+      "createdAt": "2026-07-31T06:43:31.452Z",
+      "userID": "a6730478-4082-4f92-b14f-7f95f3897043"
+    },
+    {
+      "id": "2",
+      "title": "Купить молоко",
+      "done": false,
+      "createdAt": "2026-07-31T06:43:36.128Z",
+      "userID": "a6730478-4082-4f92-b14f-7f95f3897043"
+    },
+    {
+      "id": "3",
+      "title": "Купить молоко",
+      "done": false,
+      "createdAt": "2026-07-31T06:43:38.477Z",
+      "userID": "a6730478-4082-4f92-b14f-7f95f3897043"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+@token = {{login.response.body.token}}
+
+
+### создание файла
+GET http://localhost:5001/createFile
+
+###
+GET http://localhost:5001/readFile
+
+###
+POST http://localhost:5001/createTask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "test123",
+    "completed": true,
+    "description": "refr"
+}
+
+### удаление файла
+DELETE  http://localhost:5001/deleteFile
+
+### апдейт таски
+PUT  http://localhost:5001/updateTask/1
+Content-Type: application/json
+accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "wedwedwef"
+}
+
+### комплитед таски
+
+PATCH http://localhost:5001/updateTask/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+### удалить таску
+
+DELETE http://localhost:5001/deleteTask/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### получить таску
+
+GET  http://localhost:5001/getTodo/3
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### получить выполненные таски
+
+GET  http://localhost:5001/getTodo/?completed=false
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+### регистрация
+
+POST  http://localhost:5001/registration
+Content-Type: application/json
+
+{
+    "email": "test2@gmail.com",
+    "password": "12345678",
+    "name": "Vika"
+}
+
+### логин
+# @name login
+POST  http://localhost:5001/login
+Content-Type: application/json
+
+{
+    "email": "test2@gmail.com",
+    "password": "12345678"
+}
