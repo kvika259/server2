@@ -272,7 +272,60 @@ const options = {
           }
         }
       }
-    }
+    },
+    schemas: {
+        RegisterDto: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { 
+              type: 'string', 
+              format: 'email', 
+              example: 'user@example.com' 
+            },
+            password: { 
+              type: 'string', 
+              minLength: 6, 
+              example: 'secret123' 
+            }
+          }
+        },
+        LoginDto: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { 
+              type: 'string', 
+              format: 'email', 
+              example: 'user@example.com' 
+            },
+            password: { 
+              type: 'string', 
+              example: 'secret123' 
+            }
+          }
+        },
+        CreateTodoDto: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: { 
+              type: 'string', 
+              example: 'Купить продукты' 
+            }
+          }
+        },
+        UpdateTodoDto: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: { 
+              type: 'string', 
+              example: 'Обновленный заголовок задачи' 
+            }
+          }
+        }
+      }       
   },
   
     apis: [] // Оставляем пустым, так как не ищем комментарии в других файлах
