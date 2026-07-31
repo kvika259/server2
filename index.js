@@ -17,8 +17,9 @@ const {readFile, createFile, deleteFile} = require('./workWithFile')
 const SECRET = 'access'
 const TOKEN_TTL = '1h'
 
-app.use(cors());
+
 const app = express()
+app.use(cors());
 // Определяем маршрут для Swagger UI
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
