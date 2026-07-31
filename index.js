@@ -7,6 +7,7 @@ const swaggerSpec = require('./swaggerSpec.js');
 
 
 const express = require('express')
+const cors = require('cors');
 const fs = require('fs/promises') // добавление файлового сервера
 const path = require('path')
 const {validateCreateTask, validateUpdateTask,validateToggleTask,validateGetTask,
@@ -16,7 +17,7 @@ const {readFile, createFile, deleteFile} = require('./workWithFile')
 const SECRET = 'access'
 const TOKEN_TTL = '1h'
 
-
+app.use(cors());
 const app = express()
 // Определяем маршрут для Swagger UI
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

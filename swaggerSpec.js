@@ -11,7 +11,11 @@ const options = {
     servers: [
       {
         url: 'http://localhost:5001',
-      }],
+      },
+      {
+        url: 'https://server2-cmrh.onrender.com', // Для исправления ошибки на Render, т.к. Swagger на Render пытается отправить запрос на локальный ПК
+      }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
