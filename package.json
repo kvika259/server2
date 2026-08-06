@@ -20,6 +20,7 @@
     "express-validator": "^7.3.2",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.5.0",
     "path": "^0.12.7",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"

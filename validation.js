@@ -29,9 +29,9 @@ function description(){
 
 function taskID (){
     return param('id')
-    .isInt({ min: 1 })
-    .withMessage('id должен быть положительным целым числом.')
-    .toInt();
+    //.isInt({ min: 1 })
+    //.withMessage('id должен быть положительным целым числом.')
+    //.toInt();
 }
 
 const validateCreateTask = [title(), completed(), description()];

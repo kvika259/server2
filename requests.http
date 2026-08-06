@@ -13,7 +13,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "title": "test123",
+    "title": "test",
     "completed": true,
     "description": "refr"
 }
@@ -22,33 +22,40 @@ Authorization: Bearer {{token}}
 DELETE  http://localhost:5001/deleteFile
 
 ### апдейт таски
-PUT  http://localhost:5001/updateTask/1
+PUT  http://localhost:5001/updateTask/6a707366e2706f0017494c11
 Content-Type: application/json
 accept: application/json
 Authorization: Bearer {{token}}
 
 {
-    "title": "wedwedwef"
+    "title": "erferf"
 }
 
 ### комплитед таски
 
-PATCH http://localhost:5001/updateTask/1
+PATCH http://localhost:5001/updateTask/6a6ee0ecb4bb9f68bc41c84a
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 
 ### удалить таску
 
-DELETE http://localhost:5001/deleteTask/1
+DELETE http://localhost:5001/deleteTask/6a707365e2706f0017494c10
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 ### получить таску
 
-GET  http://localhost:5001/getTodo/3
+GET  http://localhost:5001/getTodo/6a707365e2706f0017494c10
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+### получить все таски пользователя
+
+GET  http://localhost:5001/getTodo
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
 
 ### получить выполненные таски
 
@@ -63,9 +70,9 @@ POST  http://localhost:5001/registration
 Content-Type: application/json
 
 {
-    "email": "test2@gmail.com",
+    "email": "test@gmail.com",
     "password": "12345678",
-    "name": "Vika"
+    "name": "Kristina"
 }
 
 ### логин
@@ -74,6 +81,6 @@ POST  http://localhost:5001/login
 Content-Type: application/json
 
 {
-    "email": "test2@gmail.com",
+    "email": "test@gmail.com",
     "password": "12345678"
 }
