@@ -18,7 +18,7 @@ const {validateCreateTask, validateUpdateTask,validateToggleTask,validateGetTask
 const {readFile, createFile, deleteFile} = require('./workWithFile')
 
 const SECRET = 'access'
-const TOKEN_TTL = '1h'
+const TOKEN_TTL = '24h'
 
 
 const app = express()
@@ -48,7 +48,7 @@ const DB = path.join(__dirname, 'db.json') // dirname - путь в текущу
 
 
 //регистрация
-app.post('/registration', async (req, res)=>{
+app.post('/auth/register', async (req, res)=>{
     // const {email, password} = req.body
     // const db = await readFile()
 
@@ -62,8 +62,8 @@ app.post('/registration', async (req, res)=>{
     // await fs.writeFile(DB, JSON.stringify(db, null, 2))
 
     // res.status(201).json({id: user.id, email: user.email})
-
-    const {email, password} = req.body
+    try {
+        const {email, password} = req.body
     const user = {
          email,
          passwordHash: await bcrypt.hash(password, 10) // надо в любом случае хэшить пароль, поэтому этот объект обязателен
@@ -73,13 +73,16 @@ app.post('/registration', async (req, res)=>{
     const connection = await client.connect()
     const users = connection.db('lection_db').collection('users')
 
-    users.insertOne(user)
+    await users.insertOne(user)
     connection.close();
-    res.send("Создан")
+    res.status(201).json({access_token: signToken(user)})
+    } catch (error) {
+        console.log(error.message)
+    }
 })
 
 //авторизация
-app.post('/login', async (req, res)=>{
+app.post('/auth/login', async (req, res)=>{
     const {email, password} = req.body
 
     // const db = await readFile()
@@ -96,11 +99,11 @@ app.post('/login', async (req, res)=>{
 
     if(!user || !pass){res.status(401).send("Неверный email или пароль")}
     connection.close();
-    res.json({token: signToken(user)})
+    res.json({access_token: signToken(user)})
 })
 
-function signToken(user){
-    return jwt.sign({id: new ObjectId(user._id), email: user.email}, SECRET, {expiresIn: TOKEN_TTL} ) // id от могодб прописывается через нижнее подчеркивание
+function signToken({_id = 1,email}){
+    return jwt.sign({id: new ObjectId(_id), email: email}, SECRET, {expiresIn: TOKEN_TTL} ) // id от могодб прописывается через нижнее подчеркивание
 }
 
 //аутентификация
@@ -160,7 +163,7 @@ app.get('/getTodo/:id', auth, validateGetTask, handleValidationErrors, async (re
     }
 })
 
-app.get('/getTodo/', auth, validateGetTasks, handleValidationErrors, async (req, res) => { 
+app.get('/todos/', auth, validateGetTasks, handleValidationErrors, async (req, res) => { 
     try {
         const { completed } = req.query
         //const {tasks} = await readFile()
@@ -179,20 +182,20 @@ app.get('/getTodo/', auth, validateGetTasks, handleValidationErrors, async (req,
     }
 })
 
-app.post('/createTask', auth, validateCreateTask, handleValidationErrors, async (req, res) => { // создание таски
+app.post('/todos', auth, validateCreateTask, handleValidationErrors, async (req, res) => { // создание таски
     try {
-        const {title} = req.body
+        const {title, description} = req.body
         
         //const data = await readFile()
         const client = new MongoClient('mongodb://localhost:27017')
         const connection = await client.connect()
         const tasks = connection.db('lection_db').collection('tasks')
-        tasks.insertOne({title, done: false, createdAt: new Date(), userID: req.user.id})
-
+        const newTask = {title, description, done: false, createdAt: new Date(), userID: req.user.id}
+        await tasks.insertOne(newTask)
         //data.tasks.push({id:crypto.randomUUID(), title, done: false, createdAt: new Date(), userID: req.user.id})
         //await fs.writeFile(DB, JSON.stringify(data, null, 2))
         connection.close();
-        res.status(201).send('Добавил')} 
+        res.status(201).json(newTask)} 
     
     catch (error) {
         res.status(500).json({ error: 'Не удалось сохранить задачу', details: error.message })
@@ -200,9 +203,9 @@ app.post('/createTask', auth, validateCreateTask, handleValidationErrors, async 
 })
 
 
-app.put('/updateTask/:id', auth, validateUpdateTask,handleValidationErrors, async (req, res) => { //изменение названия
+app.put('/todos/:id', auth, validateUpdateTask,handleValidationErrors, async (req, res) => { //изменение названия
     try{
-    const {title} = req.body
+    const {title, description} = req.body
     const { id } = req.params
     
     // const data = await readFile()
@@ -210,9 +213,9 @@ app.put('/updateTask/:id', auth, validateUpdateTask,handleValidationErrors, asyn
     const client = new MongoClient('mongodb://localhost:27017')
     const connection = await client.connect()
     const tasks = connection.db('lection_db').collection('tasks')
-    const updateTask = await tasks.updateOne({userID:req.user.id, _id: new ObjectId(id)}, { $set: { title:title } })
-    // ВАЛИДАЦИЯ НАЛИЧИЯ если совпадений по поиску нет, то у обекта ответа апдейт в свойстве matchedCount будет 0
-        if (updateTask.matchedCount == 0) {return res.status(404).json(`Задача с id ${id} не найдена`);}
+    const updateTask = await tasks.findOneAndUpdate({userID:req.user.id, _id: new ObjectId(id)}, { $set: { title:title,  description:description} }, { returnDocument: 'after' })
+    // ВАЛИДАЦИЯ НАЛИЧИЯ
+        if (!updateTask) {return res.status(404).json(`Задача с id ${id} не найдена`);}
 
     // ВАЛИДАЦИЯ НАЛИЧИЯ: Если задачи нет, findIndex вернет -1
     // if (updateTask == -1) {return res.status(404).json(`Задача с id ${id} не найдена`);}
@@ -221,13 +224,13 @@ app.put('/updateTask/:id', auth, validateUpdateTask,handleValidationErrors, asyn
     //await fs.writeFile(DB, JSON.stringify(data, null, 2))
     //res.json(data.tasks[updateTask])
     connection.close();
-    res.send(`Задача изменена`)
+    res.json(updateTask)
     } catch (error) {
         res.send(error.message)
     }
 })
 
-app.patch('/updateTask/:id', auth, validateToggleTask, handleValidationErrors, async (req, res) => { //изменение комплитед
+app.patch('/todos/:id/toggle', auth, validateToggleTask, handleValidationErrors, async (req, res) => { //изменение комплитед
     try{const { id } = req.params
 
     // const data = await readFile()
@@ -252,12 +255,12 @@ app.patch('/updateTask/:id', auth, validateToggleTask, handleValidationErrors, a
     }
 })
 
-app.delete('/deleteTask/:id', auth, handleValidationErrors, async (req, res) => { 
+app.delete('/todos/:id', auth, handleValidationErrors, async (req, res) => { 
     try{const { id } = req.params
     const client = new MongoClient('mongodb://localhost:27017')
     const connection = await client.connect()
     const tasks = connection.db('lection_db').collection('tasks')
-    tasks.deleteOne({userID:req.user.id, _id: new ObjectId(id)})
+    await tasks.deleteOne({userID:req.user.id, _id: new ObjectId(id)})
     
     // const data = await readFile()
     // const deleteTask = await findTask(data.tasks, id, req, res)
