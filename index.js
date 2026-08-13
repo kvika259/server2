@@ -19,7 +19,8 @@ const {readFile, createFile, deleteFile} = require('./workWithFile')
 
 const SECRET = 'access'
 const TOKEN_TTL = '24h'
-
+const URLMongo = 'mongodb://kvika259_db_user:qrwNornXUs5z2RzB@ac-sgheq2l-shard-00-00.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-01.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-02.udleimt.mongodb.net:27017/lection_db?replicaSet=atlas-105359-shard-0&ssl=true&authSource=admin'
+const URLMongoLocal = 'mongodb://localhost:27017'
 
 const app = express()
 app.use(cors());
@@ -49,19 +50,6 @@ const DB = path.join(__dirname, 'db.json') // dirname - путь в текущу
 
 //регистрация
 app.post('/auth/register', async (req, res)=>{
-    // const {email, password} = req.body
-    // const db = await readFile()
-
-    // const user = {
-    //     id: crypto.randomUUID(),
-    //     email,
-    //     passwordHash: await bcrypt.hash(password, 10)
-    // }
-
-    // db.users.push(user)
-    // await fs.writeFile(DB, JSON.stringify(db, null, 2))
-
-    // res.status(201).json({id: user.id, email: user.email})
     try {
         const {email, password} = req.body
     const user = {
@@ -69,7 +57,7 @@ app.post('/auth/register', async (req, res)=>{
          passwordHash: await bcrypt.hash(password, 10) // надо в любом случае хэшить пароль, поэтому этот объект обязателен
      }
 
-    const client = new MongoClient('mongodb://localhost:27017')
+    const client = new MongoClient(URLMongo)
     const connection = await client.connect()
     const users = connection.db('lection_db').collection('users')
 
@@ -77,7 +65,8 @@ app.post('/auth/register', async (req, res)=>{
     connection.close();
     res.status(201).json({access_token: signToken(user)})
     } catch (error) {
-        console.log(error.message)
+        console.error('Ошибка регистрации:', error.message)
+        res.status(500).json({ error: 'Ошибка регистрации', details: error.message })
     }
 })
 
@@ -85,11 +74,7 @@ app.post('/auth/register', async (req, res)=>{
 app.post('/auth/login', async (req, res)=>{
     const {email, password} = req.body
 
-    // const db = await readFile()
-    // const user = db.users.find(i=>i.email === email)
-
-
-    const client = new MongoClient('mongodb://localhost:27017')
+    const client = new MongoClient(URLMongo)
     const connection = await client.connect()
     const users = connection.db('lection_db').collection('users')
     const user = await users.findOne({email:email})
@@ -121,41 +106,18 @@ function auth(req,res,next){
 
 
 
-// работа с файловой системой
-app.get('/createFile', async (req, res) => createFile(req, res))
-
-app.get('/readFile', async (req, res) => { 
-    const data = await readFile()
-    res.json(data)
-})
-
-app.delete('/deleteFile', async (req, res) => deleteFile(req, res))
-
-
-
-
-//работа с данными в файловой системе
-
-async function findTask(file, id, req, res) {
-    const index = file.findIndex(i=> i.id == id && i.userID === req.user.id)
-    return index
-}
-
 
 app.get('/getTodo/:id', auth, validateGetTask, handleValidationErrors, async (req, res) => { 
     try {
         const { id } = req.params
-        //const {tasks} = await readFile()
-        //const taskIndex = await findTask(tasks, id, req, res)  
-        const client = new MongoClient('mongodb://localhost:27017')
+        
+        const client = new MongoClient(URLMongo)
         const connection = await client.connect()
         const tasks = connection.db('lection_db').collection('tasks')
         let task = await tasks.findOne({userID:req.user.id, _id: new ObjectId(id)})
 
         // ВАЛИДАЦИЯ НАЛИЧИЯ MongoDB Если задачи нет, вернет null
         if (task == null) {return res.status(404).json(`Задача с id ${id} не найдена`);}
-        // ВАЛИДАЦИЯ НАЛИЧИЯ: Если задачи нет, findIndex вернет -1
-        //if (taskIndex == -1) {return res.status(404).json(`Задача с id ${id} не найдена`);}
         connection.close();
         res.json(task)
     } catch (error) {
@@ -166,15 +128,13 @@ app.get('/getTodo/:id', auth, validateGetTask, handleValidationErrors, async (re
 app.get('/todos/', auth, validateGetTasks, handleValidationErrors, async (req, res) => { 
     try {
         const { completed } = req.query
-        //const {tasks} = await readFile()
 
-        const client = new MongoClient('mongodb://localhost:27017')
+        const client = new MongoClient(URLMongo)
         const connection = await client.connect()
         const tasks = connection.db('lection_db').collection('tasks')
         let task = await tasks.find({userID:req.user.id}).toArray()
         
         if (completed !== undefined){task = task.filter(i=> i.done.toString() === completed)}
-        //const task =  tasks.filter(i=> i.userID === req.user.id).filter(i=> i.done.toString() === completed)
         connection.close();
         res.json(task)
     } catch (error) {
@@ -186,14 +146,12 @@ app.post('/todos', auth, validateCreateTask, handleValidationErrors, async (req,
     try {
         const {title, description} = req.body
         
-        //const data = await readFile()
-        const client = new MongoClient('mongodb://localhost:27017')
+        const client = new MongoClient(URLMongo)
         const connection = await client.connect()
         const tasks = connection.db('lection_db').collection('tasks')
         const newTask = {title, description, done: false, createdAt: new Date(), userID: req.user.id}
         await tasks.insertOne(newTask)
-        //data.tasks.push({id:crypto.randomUUID(), title, done: false, createdAt: new Date(), userID: req.user.id})
-        //await fs.writeFile(DB, JSON.stringify(data, null, 2))
+
         connection.close();
         res.status(201).json(newTask)} 
     
@@ -208,21 +166,13 @@ app.put('/todos/:id', auth, validateUpdateTask,handleValidationErrors, async (re
     const {title, description} = req.body
     const { id } = req.params
     
-    // const data = await readFile()
-    // const updateTask = await findTask(data.tasks, id, req, res)  
-    const client = new MongoClient('mongodb://localhost:27017')
+    const client = new MongoClient(URLMongo)
     const connection = await client.connect()
     const tasks = connection.db('lection_db').collection('tasks')
     const updateTask = await tasks.findOneAndUpdate({userID:req.user.id, _id: new ObjectId(id)}, { $set: { title:title,  description:description} }, { returnDocument: 'after' })
     // ВАЛИДАЦИЯ НАЛИЧИЯ
         if (!updateTask) {return res.status(404).json(`Задача с id ${id} не найдена`);}
 
-    // ВАЛИДАЦИЯ НАЛИЧИЯ: Если задачи нет, findIndex вернет -1
-    // if (updateTask == -1) {return res.status(404).json(`Задача с id ${id} не найдена`);}
-    // data.tasks[updateTask].title = title
-
-    //await fs.writeFile(DB, JSON.stringify(data, null, 2))
-    //res.json(data.tasks[updateTask])
     connection.close();
     res.json(updateTask)
     } catch (error) {
@@ -233,14 +183,7 @@ app.put('/todos/:id', auth, validateUpdateTask,handleValidationErrors, async (re
 app.patch('/todos/:id/toggle', auth, validateToggleTask, handleValidationErrors, async (req, res) => { //изменение комплитед
     try{const { id } = req.params
 
-    // const data = await readFile()
-    // const updateTask = await findTask(data.tasks, id, req, res) 
-    // // ВАЛИДАЦИЯ НАЛИЧИЯ: Если задачи нет, findIndex вернет -1
-    // if (updateTask == -1) {return res.status(404).json(`Задача с id ${id} не найдена`);} 
-    // data.tasks[updateTask].done = !data.tasks[updateTask].done
-    // await fs.writeFile(DB, JSON.stringify(data, null, 2))
-
-    const client = new MongoClient('mongodb://localhost:27017')
+    const client = new MongoClient(URLMongo)
     const connection = await client.connect()
     const tasks = connection.db('lection_db').collection('tasks')
     const updateTask = await tasks.updateOne({userID:req.user.id, _id: new ObjectId(id)}, [{ $set: { done:{ $not: "$done" } } }])
@@ -257,17 +200,11 @@ app.patch('/todos/:id/toggle', auth, validateToggleTask, handleValidationErrors,
 
 app.delete('/todos/:id', auth, handleValidationErrors, async (req, res) => { 
     try{const { id } = req.params
-    const client = new MongoClient('mongodb://localhost:27017')
+    const client = new MongoClient(URLMongo)
     const connection = await client.connect()
     const tasks = connection.db('lection_db').collection('tasks')
     await tasks.deleteOne({userID:req.user.id, _id: new ObjectId(id)})
     
-    // const data = await readFile()
-    // const deleteTask = await findTask(data.tasks, id, req, res)
-    // // ВАЛИДАЦИЯ НАЛИЧИЯ: Если задачи нет, findIndex вернет -1
-    // if (deleteTask == -1) {return res.status(404).json(`Задача с id ${id} не найдена`);}
-    // data.tasks.splice(deleteTask, 1)
-    // await fs.writeFile(DB, JSON.stringify(data, null, 2))
     connection.close();
     res.send(id)} catch (error) {
         res.send(error.message)
