@@ -19,7 +19,7 @@ const {readFile, createFile, deleteFile} = require('./workWithFile')
 
 const SECRET = 'access'
 const TOKEN_TTL = '24h'
-const URLMongo = 'mongodb://kvika259_db_user:qrwNornXUs5z2RzB@ac-sgheq2l-shard-00-00.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-01.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-02.udleimt.mongodb.net:27017/lection_db?replicaSet=atlas-105359-shard-0&ssl=true&authSource=admin'
+const URLMongo = 'mongodb://kvika259_db_user:qrwNornXUs5z2RzB@ac-sgheq2l-shard-00-00.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-01.udleimt.mongodb.net:27017,ac-sgheq2l-shard-00-02.udleimt.mongodb.net:27017/?replicaSet=atlas-105359-shard-0&ssl=true&authSource=admin'
 const URLMongoLocal = 'mongodb://localhost:27017'
 
 const app = express()
